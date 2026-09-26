@@ -1,4 +1,5 @@
-from typing import TypedDict, Annotated
+from typing import Annotated
+from typing_extensions import TypedDict
 import operator
 from langchain_core.messages import MessageLikeRepresentation
 from pydantic import BaseModel
@@ -19,7 +20,7 @@ class SupervisorState(TypedDict):
     research_brief: str
     notes: Annotated[list[str], override_reducer] = []
     raw_notes: Annotated[list[str], override_reducer] = []
-    research_iteration: int = 0
+    research_iterations: int = 0
 
 
 class ResearcherState(TypedDict):

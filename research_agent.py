@@ -15,7 +15,7 @@ from langchain_core.messages import (
 from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import Graph
 from langgraph.graph import StateGraph, START, END
-from integrations.tools import think_tool, tavily_search, conduct_research, research_complete, get_today_str
+from integrations.tools import think_tool, tavily_search, ResearchComplete, ConductResearch, get_today_str
 from state import ResearcherState, ResearcherOutputState
 from prompts.prompts import research_system_prompt, compress_research_system_prompt, compress_research_simple_human_message
 
@@ -23,10 +23,9 @@ from prompts.prompts import research_system_prompt, compress_research_system_pro
 load_dotenv()
 
 model = init_chat_model(
-    model=os.getenv("GEMINI_MODEL"),
+    model=os.getenv("RESEARCHER_MODEL"),
     model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API"),
-    temperature=0.2,
+    api_key=os.getenv("GEMINI_API")
 )
 
 tools = [think_tool, tavily_search]
@@ -37,15 +36,13 @@ model_with_tools = model.bind_tools(tools)
 summarization_model = init_chat_model(
     model=os.getenv("GEMINI_MODEL"),
     model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API"),
-    temperature=0.2,
+    api_key=os.getenv("GEMINI_API")
 )
 
 compress_model = init_chat_model(
-    model=os.getenv("GEMINI_MODEL"),
+    model=os.getenv("COMPRESS_RESEARCH_MODEL"),
     model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API"),
-    temperature=0.2,
+    api_key=os.getenv("GEMINI_API")
 )
 
 async def llm_call(state: ResearcherState):
@@ -144,13 +141,5 @@ agent_builder.add_edge("tool_node", "llm_call")
 agent_builder.add_edge("compress_research", END)
 
 # Compile research agent
-researcher_agent = agent_builder.compile()
+research_agent = agent_builder.compile()
 
-async def main():
-    message = "find the current trending in AI field for this week."
-    # Use ainvoke instead of invoke for async graphs
-    res = await researcher_agent.ainvoke({"researcher_messages": [HumanMessage(content=message)]})
-    print(res)
-
-if __name__ == "__main__":
-    asyncio.run(main())

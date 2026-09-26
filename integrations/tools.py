@@ -1,6 +1,7 @@
 import os
 import asyncio
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
@@ -9,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Optional
 from langchain_core.runnables import RunnableConfig
 from langchain.chat_models import init_chat_model
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, BaseMessage, filter_messages
 from tavily import AsyncTavilyClient
 from langchain_core.tools import tool
 from prompts.prompts import summarize_webpage_prompt
@@ -29,7 +30,7 @@ TAVILY_SEARCH_DESCRIPTION = (
 @tool(description=TAVILY_SEARCH_DESCRIPTION)
 async def tavily_search(
     queries: List[str],
-    max_results: int=3,
+    max_results: int=2,
     topic: Literal["general", "news", "finance"] = "news",
     time_range: Literal["day", "week", "month", "year"] = "week",
     # config: RunnableConfig = None
@@ -60,7 +61,7 @@ async def tavily_search(
 
 async def tavily_search_async(
     search_queries,
-    max_results: int = 3,
+    max_results: int = 2,
     topic: Literal["general", "news", "finance"] = "news",
     time_range: Literal["day", "week", "month", "year"] = "week",
     include_raw_content: bool = False
@@ -149,7 +150,7 @@ async def summarize_webpage(model, webpage_content):
         # Create the prompt
         prompt_content = summarize_webpage_prompt.format(
             webpage_content=webpage_content,
-            date=get_today_str
+            date=get_today_str()
         )
 
         # Execute the summarization with timeout to prevent hanging
@@ -231,15 +232,26 @@ def conduct_research(research_topic: str) -> str:
     """
     return f"Signal: Sub-graph research task triggered for topic: {research_topic}"
 
+def get_notes_from_tool_calls(messages: list[BaseMessage]) -> list[str]:
+    """Extract research notes from ToolMessage objects in supervisor message history.
+    Args:
+        messages: List of messages from supervisor's conversation history
+
+    Returns:
+        List of research note strings extracted from ToolMessage objects
+    """
+    return [tool_msg.content for tool_msg in filter_messages(messages, include_types="tool")]
+
 
 @tool
-def research_complete() -> str:
-    """Call this tool to signal that all research goals have been fully met.
+class ConductResearch(BaseModel):
+    """Tool to delegate a specific sub-topic to a specialized sub-agent"""
 
-    Use this tool ONLY when you have gathered sufficient, exhaustive information,
-    analyzed all research gaps via the reflection tool, and are ready to stop
-    the research loops to begin compilation of the final report.
-    """
-    return "Signal: Research complete. Moving to report generation."
+    research_topic: str = Field(
+        description="The topic to research. Should be a single topic, and should be described in high detail (at least a paragraph)"
+    )
 
-
+@tool
+class ResearchComplete(BaseModel):
+    """Call this tool to indicate that all research goals have been fully met."""
+    pass
