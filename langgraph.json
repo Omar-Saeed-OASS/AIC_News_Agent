@@ -1,0 +1,6 @@
+{
+  "graphs": {
+    "graph": "research_agent:researcher_agent"
+  },
+  "env": ".env"
+}

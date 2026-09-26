@@ -1,0 +1,39 @@
+from typing import TypedDict, Annotated
+import operator
+from langchain_core.messages import MessageLikeRepresentation
+from pydantic import BaseModel
+
+
+def override_reducer(current_value, new_value):
+    """Reducer function that allows overriding values in state."""
+
+    if isinstance(new_value, dict) and new_value.get("type") == "override":
+        return new_value.get("value", new_value)
+    else:
+        return operator.add(current_value, new_value)
+
+class SupervisorState(TypedDict):
+    """State for the supervisor that manages research tasks."""
+
+    supervisor_messages: Annotated[list[MessageLikeRepresentation], override_reducer]
+    research_brief: str
+    notes: Annotated[list[str], override_reducer] = []
+    raw_notes: Annotated[list[str], override_reducer] = []
+    research_iteration: int = 0
+
+
+class ResearcherState(TypedDict):
+    """State for individual researchers conducting research."""
+
+    researcher_messages: Annotated[list[MessageLikeRepresentation], operator.add]
+    tool_call_iterations: int = 0
+    research_topic: str
+    compressed_research: str
+    raw_notes: Annotated[list[str], override_reducer] = []
+
+
+class ResearcherOutputState(BaseModel):
+    """Output state from individual researchers."""
+
+    compressed_research: str
+    raw_notes: Annotated[list[str], override_reducer] = []
