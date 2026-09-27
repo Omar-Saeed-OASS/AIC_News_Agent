@@ -41,9 +41,17 @@ async def final_report_generation(state: AgentState):
         date=get_today_str()
     )
 
-    final_report = await writer_model.ainvoke(HumanMessage(content=final_report_prompt))
+    final_report = await writer_model.ainvoke([HumanMessage(content=final_report_prompt)])
+
+    # Type checking to avoid casting errors
+    content = final_report.content
+
+    if isinstance(content, list):
+        content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+    else:
+        content = str(content)
 
     return {
-        "final_report": final_report.content,
-        "messages": ["Here is the final report: " + final_report.content]
+        "final_report": content,
+        "messages": ["Here is the final report: " + content]
     }
