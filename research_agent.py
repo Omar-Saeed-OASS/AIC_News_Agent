@@ -33,11 +33,7 @@ tools_by_name = {tool.name: tool for tool in tools}
 
 model_with_tools = model.bind_tools(tools)
 
-summarization_model = init_chat_model(
-    model=os.getenv("GEMINI_MODEL"),
-    model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API")
-)
+
 
 compress_model = init_chat_model(
     model=os.getenv("COMPRESS_RESEARCH_MODEL"),
