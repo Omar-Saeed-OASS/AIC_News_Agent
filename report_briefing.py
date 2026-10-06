@@ -23,7 +23,7 @@ from prompts.prompts import transform_messages_into_research_topic_prompt
 load_dotenv()
 
 briefing_model = init_chat_model(
-    model=os.getenv("WRITER_MODEL"),
+    model=os.getenv("BRIEFING_MODEL"),
     model_provider="google_genai",
     api_key=os.getenv("GEMINI_API")
 )

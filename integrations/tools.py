@@ -16,6 +16,8 @@ from langchain_core.tools import tool
 from prompts.prompts import summarize_webpage_prompt
 from schema.schemas import Summary
 import warnings
+from dotenv import load_dotenv
+load_dotenv()
 
 
 
@@ -31,8 +33,8 @@ TAVILY_SEARCH_DESCRIPTION = (
 async def tavily_search(
     queries: List[str],
     max_results: int=2,
-    topic: Literal["general", "news", "finance"] = "news",
-    time_range: Literal["day", "week", "month", "year"] = "week",
+    topic: Literal["general", "news", "finance"] = "general",
+    time_range: Literal["day", "week", "month", "year"] = None,
     # config: RunnableConfig = None
 ) -> str:
     """Fetch and summarize search results from Tavily search API."""
@@ -62,8 +64,8 @@ async def tavily_search(
 async def tavily_search_async(
     search_queries,
     max_results: int = 2,
-    topic: Literal["general", "news", "finance"] = "news",
-    time_range: Literal["day", "week", "month", "year"] = "week",
+    topic: Literal["general", "news", "finance"] = "general",
+    time_range: Literal["day", "week", "month", "year"] = None,
     include_raw_content: bool = False
 ):
     """Execute multiple Tavily search queries asynchronously."""
@@ -95,13 +97,10 @@ async def summarization_task(
     """Summarize the unique content returned by the tavily search method"""
 
     # Set up the configuration
-    # configurable = TO DO
-    model_api_key = os.getenv("GEMINI_API")
-    model = os.getenv("GEMINI_MODEL")
     summarization_model = init_chat_model(
-        model=model,
+        model=os.getenv("COMPRESS_RESEARCH_MODEL"),
         model_provider="google_genai",
-        api_key=model_api_key,
+        api_key=os.getenv("GEMINI_API"),
     ).with_structured_output(Summary).with_retry(stop_after_attempt=2)
 
     # Create summarization tasks
