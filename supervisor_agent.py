@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from typing import Literal
 from langgraph.types import Command
 from langchain.chat_models import init_chat_model
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from prompts.prompts import lead_researcher_prompt
 
 from langchain_core.messages import (
@@ -18,11 +19,19 @@ from langchain_core.messages import (
 )
 from integrations.tools import think_tool, ResearchComplete, ConductResearch, get_today_str, conduct_research, get_notes_from_tool_calls
 
+
+rate_limiter = InMemoryRateLimiter(
+    requests_per_second=0.25,
+    check_every_n_seconds=0.1,
+    max_bucket_size=1
+)
+
 supervisor_tools = [ConductResearch, ResearchComplete, think_tool]
 supervisor_model = init_chat_model(
     model=os.getenv("SUPERVISOR_MODEL"),
     model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API")
+    api_key=os.getenv("GEMINI_API"),
+    rate_limiter=rate_limiter
 )
 
 supervisor_model_with_tools = supervisor_model.bind_tools(supervisor_tools)

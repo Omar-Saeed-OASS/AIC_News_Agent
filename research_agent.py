@@ -14,6 +14,7 @@ from langchain_core.messages import (
 )
 from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import Graph
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langgraph.graph import StateGraph, START, END
 from integrations.tools import think_tool, tavily_search, ResearchComplete, ConductResearch, get_today_str
 from state import ResearcherState, ResearcherOutputState
@@ -22,10 +23,19 @@ from prompts.prompts import research_system_prompt, compress_research_system_pro
 # Load environment
 load_dotenv()
 
+
+rate_limiter = InMemoryRateLimiter(
+    requests_per_second=0.25,
+    check_every_n_seconds=0.1,
+    max_bucket_size=1
+)
+
 model = init_chat_model(
     model=os.getenv("RESEARCHER_MODEL"),
     model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API")
+    api_key=os.getenv("GEMINI_API"),
+    rate_limiter=rate_limiter,
+    max_retries=10
 )
 
 tools = [think_tool, tavily_search]
@@ -37,7 +47,8 @@ model_with_tools = model.bind_tools(tools)
 compress_model = init_chat_model(
     model=os.getenv("COMPRESS_RESEARCH_MODEL"),
     model_provider="google_genai",
-    api_key=os.getenv("GEMINI_API")
+    api_key=os.getenv("GEMINI_API"),
+    rate_limiter=rate_limiter
 )
 
 async def llm_call(state: ResearcherState):

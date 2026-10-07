@@ -3,6 +3,7 @@ import asyncio
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
+
 load_dotenv()
 
 import logging
@@ -11,6 +12,7 @@ from typing import Any, Dict, List, Literal, Optional
 from langchain_core.runnables import RunnableConfig
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, BaseMessage, filter_messages
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from tavily import AsyncTavilyClient
 from langchain_core.tools import tool
 from prompts.prompts import summarize_webpage_prompt
@@ -24,6 +26,12 @@ load_dotenv()
 # Suppress the Google SDK's automatic function calling warning
 warnings.filterwarnings("ignore", category=UserWarning, module="google_genai")
 
+
+rate_limiter = InMemoryRateLimiter(
+    requests_per_second=0.25,
+    check_every_n_seconds=0.1,
+    max_bucket_size=1
+)
 
 TAVILY_SEARCH_DESCRIPTION = (
     "A search engine optimized for comprehensive, accurate, and trusted results. "
@@ -101,6 +109,7 @@ async def summarization_task(
         model=os.getenv("COMPRESS_RESEARCH_MODEL"),
         model_provider="google_genai",
         api_key=os.getenv("GEMINI_API"),
+        rate_limiter=rate_limiter
     ).with_structured_output(Summary).with_retry(stop_after_attempt=2)
 
     # Create summarization tasks
