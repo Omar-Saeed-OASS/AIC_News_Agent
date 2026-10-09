@@ -12,12 +12,11 @@ from utils.format_pdf import format_pdf
 load_dotenv()
 
 GMAIL_USER = os.environ.get("GMAIL_USER")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")  # APP password
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
 
 def send_news_reminder(email_content, subject, recipient, doc_content, cc_recipients=None):
-    """Send a reminder email to a recipient"""
+    """Send a reminder email to a recipient with proper envelope routing"""
 
-    # Plain-text version for email clients that do not render HTML
     plain_text_fallback = (
         "AIC Intelligence Digest\n\n"
         "Please view this email in an HTML-capable email client to read the full update.\n\n"
@@ -34,19 +33,21 @@ def send_news_reminder(email_content, subject, recipient, doc_content, cc_recipi
             message["From"] = f"AIC News System <{GMAIL_USER}>"
             message["To"] = recipient
 
-            # CC recipients if included
+            # Initialize the routing list with the primary recipient
+            all_recipients = [recipient]
+
+            # Add CC addresses to user headers
             if cc_recipients and isinstance(cc_recipients, list):
                 message["Cc"] = ", ".join(cc_recipients)
+                all_recipients.extend(cc_recipients) # Appends cc items into the flat list
 
-            # RFC-compliant unique Message-ID header
             message["Message-ID"] = make_msgid(domain="gmail.com")
 
-            # Fallback plain text + HTML
             message.set_content(plain_text_fallback)
             message.add_alternative(email_content, subtype="html")
 
-            try:
-                # Attach the generated PDF
+            # Attach the generated PDF bytes stream
+            if doc_content:
                 message.add_attachment(
                     doc_content,
                     maintype="application",
@@ -54,18 +55,11 @@ def send_news_reminder(email_content, subject, recipient, doc_content, cc_recipi
                     filename="AIC_Weekly_Report.pdf"
                 )
 
-            except FileNotFoundError:
-                print(f"Warning: {file_name} not found. Sending without attachment.")
-
-            # Send the message
-            server.send_message(message)
-            print(f"Sent email to {recipient}")
+            # Add to_addrs for the SMTP server routes to CCs
+            server.send_message(message, to_addrs=all_recipients)
+            print(f"Sent email to {recipient} (CC: {', '.join(cc_recipients) if cc_recipients else 'None'})")
 
     except smtplib.SMTPAuthenticationError as e:
         print(f"Authentication failed: Check your email and 16-char App Password. Error: {e}")
     except Exception as e:
         print(f"SMTP Error: {e}")
-
-
-
-

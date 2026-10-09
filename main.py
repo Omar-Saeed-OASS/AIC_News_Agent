@@ -3,7 +3,11 @@ from langchain_core.messages import HumanMessage
 from agents.graph import agent
 from email_reminder_system.email_reminder import send_news_reminder
 from utils.format_pdf import format_pdf
+from db.db_manager import DatabaseManager
+from datetime import datetime
 
+
+db_manager = DatabaseManager()
 
 async def main(search_message):
     try:
@@ -20,11 +24,25 @@ async def main(search_message):
         sample_html = "<h2>AIC Digest</h2><p>Here is your scheduled news update.</p>"
         newsletter_subject = "AIC Weekly Intelligence Digest | Issue #1"
 
-        cc_recipients = ["omr.ss15anni@gmail.com", "omar.csai21@gmail.com", "omr.ss20anni@gmail.com"]
+        # Email recipients
+        recipient = "omarabdulrahmansaeed@gmail.com"
+        cc_recipients = ["omar.csai21@gmail.com"]
+
+        # Save to the database
+        data = {
+            "final_report": raw_final_report,
+            "PIC": recipient,
+            "Cc": cc_recipients,
+            "date": datetime.now()
+        }
+
+        db_manager.set_document(collection="reports", data=data)
+
+        # Send the email
         send_news_reminder(
             email_content=sample_html,
             subject=newsletter_subject,
-            recipient="omarabdulrahmansaeed@gmail.com",
+            recipient=recipient,
             doc_content=final_report,
             cc_recipients=cc_recipients
         )
@@ -39,10 +57,10 @@ async def main(search_message):
 if __name__ == "__main__":
     search_requirement = """
                 Identify the three most compelling, high-signal AI developments from the past 7 days across three distinct pillars:
-                Frontier & Open Foundation Models: The most significant model release, architectural shift, or capability milestone from major labs (OpenAI, DeepMind, Anthropic, Meta) or notable open-source drops.
-                Foundational Research & Architectural Debates: The most critical research paper or theoretical insight published this week regarding model limitations, reasoning behavior, test-time compute, or efficiency bottlenecks.
-                High-Stakes & Unconventional Deployments: The most notable real-world implementation of AI in physical systems, extreme infrastructure, high-consequence industries, or headless background decision engines.
-                The Weird, Wild & World-Changing: Find surprising AI breakthroughs, unexpected capabilities, bizarre failures, and science-fiction-like developments that challenge conventional assumptions or could reshape our future. Prioritize verified, genuinely fascinating discoveries over hype and viral gimmicks.
+                1-Frontier & Open Foundation Models: The most significant model release, architectural shift, or capability milestone from major labs (OpenAI, DeepMind, Anthropic, Meta) or notable open-source drops.
+                2-Foundational Research & Architectural Debates: The most critical research paper or theoretical insight published this week regarding model limitations, reasoning behavior, test-time compute, or efficiency bottlenecks.
+                3-High-Stakes & Unconventional Deployments: The most notable real-world implementation of AI in physical systems, extreme infrastructure, high-consequence industries, or headless background decision engines.
+                4-The Weird, Wild & World-Changing: Find surprising AI breakthroughs, unexpected capabilities, bizarre failures, and science-fiction-like developments that challenge conventional assumptions or could reshape our future. Prioritize verified, genuinely fascinating discoveries over hype and viral gimmicks.
             """
 
     message = HumanMessage(content=search_requirement)
