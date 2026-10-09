@@ -30,7 +30,6 @@ def format_pdf(markdown_content):
                         </style>
                     </head>
                     <body>
-                        <h1>AIC Weekly Intelligence Report</h1>
                         {html_content}
                     </body>
                     </html>

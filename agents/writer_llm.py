@@ -16,7 +16,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import Graph
 from langgraph.graph import StateGraph, START, END
 from integrations.tools import think_tool, tavily_search, ResearchComplete, ConductResearch, get_today_str
-from state import ResearcherState, ResearcherOutputState, AgentState
+from .state import ResearcherState, ResearcherOutputState, AgentState
 from prompts.prompts import final_report_generation_prompt
 
 # Load environment

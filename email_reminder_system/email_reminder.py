@@ -14,7 +14,7 @@ load_dotenv()
 GMAIL_USER = os.environ.get("GMAIL_USER")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")  # APP password
 
-def send_news_reminder(email_content, subject, recipient):
+def send_news_reminder(email_content, subject, recipient, doc_content, cc_recipients=None):
     """Send a reminder email to a recipient"""
 
     # Plain-text version for email clients that do not render HTML
@@ -34,6 +34,10 @@ def send_news_reminder(email_content, subject, recipient):
             message["From"] = f"AIC News System <{GMAIL_USER}>"
             message["To"] = recipient
 
+            # CC recipients if included
+            if cc_recipients and isinstance(cc_recipients, list):
+                message["Cc"] = ", ".join(cc_recipients)
+
             # RFC-compliant unique Message-ID header
             message["Message-ID"] = make_msgid(domain="gmail.com")
 
@@ -41,28 +45,19 @@ def send_news_reminder(email_content, subject, recipient):
             message.set_content(plain_text_fallback)
             message.add_alternative(email_content, subtype="html")
 
-            # attachment
-            file_name = "test.md"
-
             try:
-                # Read the raw markdown
-                with open(file_name, "r", encoding="utf-8") as file:
-                    raw_md = file.read()
-
-                    # Convert markdown to basic HTML
-                    content = format_pdf(raw_md)
-
-                    # Attach the generated PDF
-                    message.add_attachment(
-                        content,
-                        maintype="application",
-                        subtype="pdf",
-                        filename="AIC_Weekly_Report.pdf"
-                    )
+                # Attach the generated PDF
+                message.add_attachment(
+                    doc_content,
+                    maintype="application",
+                    subtype="pdf",
+                    filename="AIC_Weekly_Report.pdf"
+                )
 
             except FileNotFoundError:
                 print(f"Warning: {file_name} not found. Sending without attachment.")
 
+            # Send the message
             server.send_message(message)
             print(f"Sent email to {recipient}")
 
@@ -70,3 +65,7 @@ def send_news_reminder(email_content, subject, recipient):
         print(f"Authentication failed: Check your email and 16-char App Password. Error: {e}")
     except Exception as e:
         print(f"SMTP Error: {e}")
+
+
+
+

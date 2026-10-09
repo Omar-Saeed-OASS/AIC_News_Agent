@@ -16,8 +16,8 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import Graph
 from langchain_core.rate_limiters import InMemoryRateLimiter
 from langgraph.graph import StateGraph, START, END
+from .state import ResearcherState, ResearcherOutputState
 from integrations.tools import think_tool, tavily_search, ResearchComplete, ConductResearch, get_today_str
-from state import ResearcherState, ResearcherOutputState
 from prompts.prompts import research_system_prompt, compress_research_system_prompt, compress_research_simple_human_message
 
 # Load environment

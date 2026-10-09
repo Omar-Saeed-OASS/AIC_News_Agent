@@ -15,8 +15,8 @@ from langchain_core.messages import (
 from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.graph import Graph
 from langgraph.graph import StateGraph, START, END
+from .state import ResearcherState, ResearcherOutputState, AgentState
 from integrations.tools import think_tool, tavily_search, ResearchComplete, ConductResearch, get_today_str
-from state import ResearcherState, ResearcherOutputState, AgentState
 from prompts.prompts import transform_messages_into_research_topic_prompt
 
 # Load environment
