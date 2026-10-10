@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+email_reminder_system/news_service_account.json
+*.json
+.git
+aic-news-storage-key.json

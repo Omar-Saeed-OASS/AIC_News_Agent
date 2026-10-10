@@ -26,18 +26,23 @@ def get_email_from_sheet(spreadsheet_id, email_sheet_id):
         logger.error("SPREADSHEET_ID or EMAILSHEET_ID is missing from environment variables.")
         return None, []
 
-    # Try-Except Block for Network & API Calls
-    try:
-        logger.info("Authenticating with Google Cloud...")
-        scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-        # credentials, _ = google.auth.default(KEY_PATH, scopes=scopes)
-        credentials = Credentials.from_service_account_file(
-            str(KEY_PATH),
-            scopes=scopes
-        )
-        gc = gspread.authorize(credentials)
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/drive.readonly"
+    ]
 
-        logger.info("Opening spreadsheet and fetching 'emails' worksheet...")
+    try:
+        # Local Fallback: If local JSON key exists, use it
+        if KEY_PATH.exists():
+            logger.info("Local key found. Authenticating via service account JSON...")
+            credentials = Credentials.from_service_account_file(str(KEY_PATH), scopes=scopes)
+
+        # Cloud Run Native: Pull credentials automatically from Cloud Run metadata
+        else:
+            logger.info("Authenticating via Google Cloud Application Default Credentials...")
+            credentials, _ = google.auth.default(scopes=scopes)
+
+        gc = gspread.authorize(credentials)
         sheet = gc.open_by_key(spreadsheet_id).worksheet(email_sheet_id)
         records = sheet.get_all_records()
 
