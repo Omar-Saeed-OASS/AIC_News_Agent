@@ -1,13 +1,21 @@
+import os
 import asyncio
 from langchain_core.messages import HumanMessage
 from agents.graph import agent
 from email_reminder_system.email_reminder import send_news_reminder
+from email_reminder_system.email_grabber import get_email_from_sheet
 from utils.format_pdf import format_pdf
 from db.db_manager import DatabaseManager
 from datetime import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
+
+SPREADSHEET_ID = os.environ.get("SPREADSHEET_ID")
+EMAILS_SHEET = os.environ.get("EMAILS_SHEET")
 
 db_manager = DatabaseManager()
+
 
 async def main(search_message):
     try:
@@ -25,8 +33,10 @@ async def main(search_message):
         newsletter_subject = "AIC Weekly Intelligence Digest | Issue #1"
 
         # Email recipients
-        recipient = "omarabdulrahmansaeed@gmail.com"
-        cc_recipients = ["omar.csai21@gmail.com"]
+        recipient, cc_recipients = get_email_from_sheet(spreadsheet_id=SPREADSHEET_ID, email_sheet_id=EMAILS_SHEET)
+
+        # Convert the dict to single email list
+        cc_emails = [cc_recipient.get("email") for cc_recipient in cc_recipients]
 
         # Save to the database
         data = {
@@ -42,9 +52,9 @@ async def main(search_message):
         send_news_reminder(
             email_content=sample_html,
             subject=newsletter_subject,
-            recipient=recipient,
+            recipient=recipient.get("email"),
             doc_content=final_report,
-            cc_recipients=cc_recipients
+            cc_recipients=cc_emails
         )
 
         print("\n\n=== FINAL REPORT ===")

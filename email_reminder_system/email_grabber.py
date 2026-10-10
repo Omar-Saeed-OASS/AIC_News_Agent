@@ -1,10 +1,13 @@
 import os
+from pathlib import Path
 import logging
 import google.auth
 from google.auth.exceptions import GoogleAuthError
+from google.oauth2.service_account import Credentials
 import gspread
 from gspread.exceptions import GSpreadException, APIError
 from dotenv import load_dotenv
+load_dotenv()
 
 # Configure the Logger
 logging.basicConfig(
@@ -14,26 +17,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-SPREADSHEET_ID = os.environ.get("SPREADSHEET_ID")
-EMAILS_SHEET = os.environ.get("EMAILS_SHEET")
+CURRENT_DIR = Path(__file__).resolve().parent
+KEY_PATH = CURRENT_DIR / "news_service_account.json"
 
-
-def get_email_from_sheet(sheet_id):
+def get_email_from_sheet(spreadsheet_id, email_sheet_id):
     """Reads the sheet, finds the active PIC, and compiles the unique CC list"""
-    if not sheet_id:
-        logger.error("SPREADSHEET_ID is missing from environment variables.")
+    if not spreadsheet_id or not email_sheet_id:
+        logger.error("SPREADSHEET_ID or EMAILSHEET_ID is missing from environment variables.")
         return None, []
 
     # Try-Except Block for Network & API Calls
     try:
         logger.info("Authenticating with Google Cloud...")
         scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-        credentials, _ = google.auth.default(scopes=scopes)
+        # credentials, _ = google.auth.default(KEY_PATH, scopes=scopes)
+        credentials = Credentials.from_service_account_file(
+            str(KEY_PATH),
+            scopes=scopes
+        )
         gc = gspread.authorize(credentials)
 
         logger.info("Opening spreadsheet and fetching 'emails' worksheet...")
-        sheet = gc.open_by_key(sheet_id).worksheet(EMAILS_SHEET)
+        sheet = gc.open_by_key(spreadsheet_id).worksheet(email_sheet_id)
         records = sheet.get_all_records()
 
     except GoogleAuthError as e:
@@ -76,3 +81,5 @@ def get_email_from_sheet(sheet_id):
 
     logger.info("Routing parsed successfully.")
     return pic, cc_list
+
+
