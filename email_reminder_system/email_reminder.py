@@ -101,8 +101,9 @@ def send_news_reminder(
         email_content,
         subject,
         recipient,
-        doc_content,
+        doc_content=None,
         cc_recipients=None,
+        include_logo=True,
         logo_filename="aic_logo.png",
 ):
     """Send a reminder email to a recipient with inline AIC branding and PDF attachment."""
@@ -139,7 +140,7 @@ def send_news_reminder(
             message.add_alternative(email_content, subtype="html")
 
             # Attach Inline AIC Logo to the HTML part
-            if logo_path:
+            if logo_path and include_logo:
                 mime_type, _ = mimetypes.guess_type(logo_path)
                 if mime_type:
                     maintype, subtype = mime_type.split("/")
@@ -160,7 +161,7 @@ def send_news_reminder(
                 )
                 print(f"Attached inline logo from: {logo_path}")
             else:
-                print(f"Warning: '{logo_filename}' was not found. Sending email without inline logo.")
+                print(f"Warning: Sending email without inline logo.")
 
             # Attach the generated PDF
             if doc_content:
