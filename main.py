@@ -1,5 +1,6 @@
 import os
 import asyncio
+import uuid
 from langchain_core.messages import HumanMessage
 from agents.graph import agent
 from email_reminder_system.email_reminder import send_news_reminder
@@ -22,18 +23,22 @@ db_manager = DatabaseManager()
 
 async def main(search_message):
     try:
+
+        # Dynamic Date
+        today = date.today()
+        issue_date = f"Week of {today.strftime('%B %d, %Y')}"
+
         # Run the search agent
-        news = await agent.ainvoke({"messages": [search_message]})
+        run_thread_id = f"weekly_run_{today.strftime('%Y_%m_%d')}"
+        run_config = {"configurable": {"thread_id": run_thread_id}}
+
+        news = await agent.ainvoke({"messages": [search_message]}, config=run_config)
 
         # Extract the final report
         raw_final_report = news.get("final_report")
 
         # Format the report markdown to pdf
         final_report = format_pdf(raw_final_report)
-
-        # Dynamic Date
-        today = date.today()
-        issue_date = f"Week of {today.strftime('%B %d, %Y')}"
 
         # Subject Line with AIC branding
         newsletter_subject = f"⚡ AIC Weekly Intelligence Digest | {issue_date}"
@@ -48,7 +53,9 @@ async def main(search_message):
         cc_emails = [cc_recipient.get("email") for cc_recipient in cc_recipients]
 
         # Save to the database
+        auto_id = uuid.uuid4().hex[:10]
         data = {
+            "report_id": auto_id,
             "final_report": raw_final_report,
             "PIC": recipient,
             "Cc": cc_recipients,
@@ -77,7 +84,9 @@ async def main(search_message):
         error_content = error_html_content.format(error_details=error_details, current_year=datetime.now().year)
 
         # Save the error to the database
+        auto_id = uuid.uuid4().hex[:15]
         data = {
+            "error_id": auto_id,
             "error": error_details,
             "date": datetime.now()
         }
@@ -96,11 +105,12 @@ async def main(search_message):
 
 if __name__ == "__main__":
     search_requirement = """
-                Identify the three most compelling, high-signal AI developments from the past 7 days across three distinct pillars:
+                Identify the five most compelling, high-signal AI developments from the past 7 days across three distinct pillars:
                 1-Frontier & Open Foundation Models: The most significant model release, architectural shift, or capability milestone from major labs (OpenAI, DeepMind, Anthropic, Meta) or notable open-source drops.
                 2-Foundational Research & Architectural Debates: The most critical research paper or theoretical insight published this week regarding model limitations, reasoning behavior, test-time compute, or efficiency bottlenecks.
                 3-High-Stakes & Unconventional Deployments: The most notable real-world implementation of AI in physical systems, extreme infrastructure, high-consequence industries, or headless background decision engines.
                 4-The Weird, Wild & World-Changing: Find surprising AI breakthroughs, unexpected capabilities, bizarre failures, and science-fiction-like developments that challenge conventional assumptions or could reshape our future. Prioritize verified, genuinely fascinating discoveries over hype and viral gimmicks.
+                5-Agentic Frameworks & Developer Tooling: The most impactful new libraries, orchestration frameworks, or open-source infrastructure enabling multi-agent systems, advanced RAG, or autonomous workflows.
             """
 
     message = HumanMessage(content=search_requirement)
