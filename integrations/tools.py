@@ -3,7 +3,6 @@ import asyncio
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-
 load_dotenv()
 
 import logging
@@ -18,8 +17,6 @@ from langchain_core.tools import tool
 from prompts.prompts import summarize_webpage_prompt
 from schema.schemas import Summary
 import warnings
-from dotenv import load_dotenv
-load_dotenv()
 
 
 

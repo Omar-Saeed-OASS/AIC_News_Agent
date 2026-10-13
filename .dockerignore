@@ -4,3 +4,4 @@ __pycache__/
 email_reminder_system/news_service_account.json
 .git
 aic-news-storage-key.json
+*.pdf

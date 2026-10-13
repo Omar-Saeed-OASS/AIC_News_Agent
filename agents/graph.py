@@ -41,14 +41,14 @@ deep_research_builder.add_edge("supervisor_subgraph", "final_report_generation")
 deep_research_builder.add_edge("final_report_generation", END)
 
 
-# ==== Testing === locally
-# This looks up one folder from agents/ and into email_reminder_system/
+# ==== Testing locally ===
+# This looks up one folder from db folder
 current_dir = os.path.dirname(__file__)
 firebase_json_path = os.path.abspath(
     os.path.join(current_dir, "..", "db", "aic-news-storage-key.json")
 )
 
-# Tell the underlying Google library to use your Firebase file for authentication
+# Use Firebase file for authentication
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = firebase_json_path
 
 
