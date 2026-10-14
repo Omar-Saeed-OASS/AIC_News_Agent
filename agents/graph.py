@@ -41,16 +41,15 @@ deep_research_builder.add_edge("supervisor_subgraph", "final_report_generation")
 deep_research_builder.add_edge("final_report_generation", END)
 
 
-# ==== Testing locally ===
-# This looks up one folder from db folder
+# Hybrid usage
 current_dir = os.path.dirname(__file__)
 firebase_json_path = os.path.abspath(
     os.path.join(current_dir, "..", "db", "aic-news-storage-key.json")
 )
 
-# Use Firebase file for authentication
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = firebase_json_path
-
+# Use Firebase file for authentication locally
+if os.path.exists(firebase_json_path):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = firebase_json_path
 
 # Checkpointer
 project_id_str = str(os.environ.get("CHECKPOINTER_PROJECT_ID"))

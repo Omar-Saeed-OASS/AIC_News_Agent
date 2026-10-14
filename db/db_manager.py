@@ -10,13 +10,24 @@ load_dotenv()
 
 class DatabaseManager:
 
-    def __init__(self, raw_json_cert=os.environ.get("FIREBASE_CREDENTIALS_JSON")):
+    def __init__(self, raw_json_cert=None):
         try:
-            cert_dict = json.loads(raw_json_cert)
-            self.cred = credentials.Certificate(cert_dict)
-            self.app = firebase_admin.initialize_app(self.cred)
-            self.db = firestore.client()
+            # Fetch raw_json_cert
+            if raw_json_cert is None:
+                raw_json_cert = os.environ.get("FIREBASE_CREDENTIALS_JSON")
 
+            # Prevent double initialization crashes
+            if not firebase_admin._apps:
+                if raw_json_cert:
+                    # Cloud Run / Secret Manager path (or local .env JSON string)
+                    cert_dict = json.loads(raw_json_cert)
+                    self.cred = credentials.Certificate(cert_dict)
+                    self.app = firebase_admin.initialize_app(self.cred)
+                else:
+                    # Fallback to Application Default Credentials if env var isn't set
+                    self.app = firebase_admin.initialize_app()
+
+            self.db = firestore.client()
         except Exception as e:
             print(f"Error: {e}")
 
