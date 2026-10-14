@@ -24,8 +24,9 @@ class DatabaseManager:
                     self.cred = credentials.Certificate(cert_dict)
                     self.app = firebase_admin.initialize_app(self.cred)
                 else:
-                    # Fallback to Application Default Credentials if env var isn't set
-                    self.app = firebase_admin.initialize_app()
+                    # Cloud Run Native (ADC)
+                    project_id = os.environ.get("FIREBASE_PROJECT_ID", "aic-news-system")
+                    self.app = firebase_admin.initialize_app(options={"projectId": project_id})
 
             self.db = firestore.client()
         except Exception as e:

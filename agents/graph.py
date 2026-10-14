@@ -41,19 +41,19 @@ deep_research_builder.add_edge("supervisor_subgraph", "final_report_generation")
 deep_research_builder.add_edge("final_report_generation", END)
 
 
-# Hybrid usage
-current_dir = os.path.dirname(__file__)
-firebase_json_path = os.path.abspath(
-    os.path.join(current_dir, "..", "db", "aic-news-storage-key.json")
-)
-
-# Use Firebase file for authentication locally
-if os.path.exists(firebase_json_path):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = firebase_json_path
+# # Hybrid usage
+# current_dir = os.path.dirname(__file__)
+# firebase_json_path = os.path.abspath(
+#     os.path.join(current_dir, "..", "db", "aic-news-storage-key.json")
+# )
+#
+# # Use Firebase file for authentication locally
+# if os.path.exists(firebase_json_path):
+#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = firebase_json_path
 
 # Checkpointer
-project_id_str = str(os.environ.get("CHECKPOINTER_PROJECT_ID"))
-checkpointer = FirestoreSaver(project_id_str)
+project_id = os.environ.get("CHECKPOINTER_PROJECT_ID")
+checkpointer = FirestoreSaver(project_id)
 
 # Compile the full workflow with checkpointer
 agent = deep_research_builder.compile(checkpointer=checkpointer)

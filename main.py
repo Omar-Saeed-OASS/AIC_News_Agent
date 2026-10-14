@@ -138,7 +138,7 @@ if __name__ == "__main__":
                 5-Agentic Frameworks & Developer Tooling: The most impactful new libraries, orchestration frameworks, or open-source infrastructure enabling multi-agent systems, advanced RAG, or autonomous workflows.
             """
 
-    message = HumanMessage(content=search_requirement)
+    message = HumanMessage(content=search_requirements)
     asyncio.run(main(message))
 
 
