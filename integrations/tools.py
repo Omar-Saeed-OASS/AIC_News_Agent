@@ -40,7 +40,6 @@ async def tavily_search(
     max_results: int=2,
     topic: Literal["general", "news", "finance"] = "general",
     time_range: Literal["day", "week", "month", "year"] = None,
-    # config: RunnableConfig = None
 ) -> str:
     """Fetch and summarize search results from Tavily search API."""
 
@@ -50,7 +49,6 @@ async def tavily_search(
         topic=topic,
         time_range=time_range,
         include_raw_content=False
-        # config=config
     )
 
     # Deduplicate the URLs to avoid processing same content
@@ -97,7 +95,6 @@ async def tavily_search_async(
 
 async def summarization_task(
     unique_results
-    # config: RunnableConfig = None
 ):
     """Summarize the unique content returned by the tavily search method"""
 
@@ -182,6 +179,7 @@ async def summarize_webpage(model, webpage_content):
         logging.warning(f"Summarization failed with error: {str(e)}, returning original content")
         return webpage_content
 
+
 # === Reflection tool ===
 
 @tool(description="Strategic reflection tool for research planning")
@@ -222,6 +220,7 @@ def get_today_str() -> str:
     return f"{now:%a} {now:%b} {now.day}, {now:%Y}"
 
 # ===== Orchestration signaling tools =====
+
 @tool
 def conduct_research(research_topic: str) -> str:
     """Call this tool to delegate and conduct research on a specific sub-topic.

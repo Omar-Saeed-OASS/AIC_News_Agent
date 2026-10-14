@@ -7,6 +7,7 @@ from google.oauth2.service_account import Credentials
 import gspread
 from gspread.exceptions import GSpreadException, APIError
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Configure the Logger

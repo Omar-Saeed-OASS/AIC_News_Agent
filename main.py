@@ -1,15 +1,15 @@
 import os
-import asyncio
+from datetime import datetime, date
 import uuid
+import asyncio
 from langchain_core.messages import HumanMessage
 from agents.graph import agent
 from email_reminder_system.email_reminder import send_news_reminder
 from email_reminder_system.email_grabber import get_email_from_sheet
-from utils.format_pdf import format_pdf
 from templates.news_html_template import news_content_html
 from templates.error_html_template import error_html_content
 from db.db_manager import DatabaseManager
-from datetime import datetime, date
+from utils.format_pdf import format_pdf
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,7 +23,6 @@ db_manager = DatabaseManager()
 
 async def main(search_message):
     try:
-
         # Dynamic Date
         today = date.today()
 

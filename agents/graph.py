@@ -1,16 +1,16 @@
 import os
+from typing import Literal
 from .state import AgentState, AgentInputState
 from .research_agent import research_agent
 from .supervisor_agent import supervisor_agent
 from .report_briefing import write_research_brief
 from langgraph.graph import StateGraph, START, END
-from typing import Literal
 from langgraph.types import Command
 from langchain.chat_models import init_chat_model
-from prompts.prompts import lead_researcher_prompt
 from google.cloud import firestore
 from langgraph_checkpoint_firestore import FirestoreSaver
 from dotenv import load_dotenv
+from prompts.prompts import lead_researcher_prompt
 
 load_dotenv()
 
@@ -40,16 +40,6 @@ deep_research_builder.add_edge("write_research_brief", "supervisor_subgraph")
 deep_research_builder.add_edge("supervisor_subgraph", "final_report_generation")
 deep_research_builder.add_edge("final_report_generation", END)
 
-
-# # Hybrid usage
-# current_dir = os.path.dirname(__file__)
-# firebase_json_path = os.path.abspath(
-#     os.path.join(current_dir, "..", "db", "aic-news-storage-key.json")
-# )
-#
-# # Use Firebase file for authentication locally
-# if os.path.exists(firebase_json_path):
-#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = firebase_json_path
 
 # Checkpointer
 project_id = os.environ.get("CHECKPOINTER_PROJECT_ID")
